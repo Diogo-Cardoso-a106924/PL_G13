@@ -1,0 +1,7 @@
+# Python cache
+__pycache__/
+
+# PLY parser tables
+parsetab.py
+parser.out
+lextab.py

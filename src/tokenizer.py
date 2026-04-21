@@ -202,7 +202,7 @@ class Lexer:
     def t_NEWLINE(self, t ):
         r'\n+'
         t.lexer.lineno += len(t.value)
-        return t
+        #return t
     
     
     # Comentários em free-form começam com '!'
