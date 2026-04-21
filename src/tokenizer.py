@@ -92,7 +92,23 @@ class Lexer:
     # Literais de um só caracter (delimitadores e operadores simples)
     literals = ['=', '+', '-', '*', '/', '(', ')', ',', ':', '&', '%']
     
-    
+    def preprocess_fixed_form(self, data:str):
+        out=[]
+        for line in data.splitlines():
+            if not line:
+                out.append('')
+                continue
+            if line[0] in ('c','C','*','!'):
+                out.append('')
+                continue
+            label = line[:5].strip()
+            code = line[6:72] if len(line) > 6 else ''
+            if label.isdigit():
+                out.append(label + ' ' + code.rstrip())
+            else:
+                out.append(line.rstrip())
+        return '\n'.join(out)
+  
     def t_BOOL(self, t ):
         r'\.TRUE\.|\.FALSE\.'
         t.value = True if t.value.upper() == '.TRUE.' else False
@@ -155,17 +171,25 @@ class Lexer:
         t.value = float(t.value.replace('d', 'e').replace('D', 'E'))
         return t
     
-    def t_INT(self, t ):
+    def t_LABEL(self, t):
         r'\d+'
-        t.value = int(t.value)
+        pos0 = t.lexpos == 0 or t.lexer.lexdata[t.lexpos-1] == '\n'
+        if pos0:
+            t.value = int(t.value)
+            return t
+        t.type='INT'
+        t.value=int(t.value)
         return t
     
-    def t_STR(self, t ):
-        r'\'(?:\'\'|[^\'])*\'|\"(?:\"\"|[^\"])*\"'
-        # Remove as aspas externas ou aceita uma caso houverem duas juntas
-        t.value = t.value[1:-1]
-        return t
-    
+
+    def t_STR(self,t):
+        r"'(?:''|[^'])*'|\"(?:\"\"|[^\"])*\""
+        raw=t.value[1:-1]
+        if t.value[0]=="'":
+            t.value=raw.replace("''","'")
+        else:
+            t.value=raw.replace('""','"')
+        return t   
     
     #  Fortran é case-insensitive — normaliza tudo para minúsculas
     def t_IDENTIFIER(self, t ):
@@ -206,10 +230,12 @@ class Lexer:
     def build(self, **kwargs):
         self.lexer = lex.lex(module=self, **kwargs)
  
-    def input(self, data: str):
-        self.lexer.lineno = 1
+    def input(self,data:str, fixed_form=True):
+        self.lexer.lineno=1
+        if fixed_form:
+            data=self.preprocess_fixed_form(data)
         self.lexer.input(data)
- 
+
     def token(self):
         return self.lexer.token()
     
