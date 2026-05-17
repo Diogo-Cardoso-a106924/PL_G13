@@ -50,16 +50,15 @@ class EWVMEmitCoreMixin:
         self.e("STORE 0")
 
     def _init_ascii_table(self):
-        # NUL, LF, CR, aspas: string vazia na tabela para não partir o literal EWVM.
-        bad_idx = {0, 10, 13, 34}
         base = self.layout.ascii_table_base
         for i in range(ASCII_TABLE_SIZE):
-            if i in bad_idx:
-                self.e('PUSHS ""')
+            if i in [0, 10, 13, 34]:  # Skip NUL, LF, CR, quotes
+                self.e(f"PUSHI {i}") 
             else:
                 ch = chr(i).replace("\\", "\\\\")
                 self.e(f'PUSHS "{ch}"')
             self._store_cell(base + i)
+            
 
     def _ascii_code_to_str(self):
         base = self.layout.ascii_table_base
