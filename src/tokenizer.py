@@ -1,18 +1,11 @@
 import ply.lex as lex
-import sys
 
 def find_column(token):
-    '''
-    Retorna o número da coluna em que o token se encontra na sua linha.
-    '''
     text = token.lexer.lexdata
     line_start = text.rfind('\n', 0, token.lexpos) + 1
     return (token.lexpos - line_start) + 1
  
 def getline(token) -> str:
-    '''
-    Retorna a string da linha do token dado como argumento.
-    '''
     line_idx = token.lineno - 1
     lines = token.lexer.lexdata.split('\n')
     if line_idx < len(lines):
@@ -23,35 +16,44 @@ def getline(token) -> str:
 class Lexer:
 
     keywords = {
-        'program'    : 'PROGRAM',
-        'read'       : 'READ',
-        'print'      : 'PRINT',
-        'write'      : 'WRITE',
-        'do'         : 'DO',
-        'end'        : 'END',
-        'continue'   : 'CONTINUE',
-        'logical'    : 'LOGICAL',
-        'if'         : 'IF',
-        'then'       : 'THEN',
-        'endif'      : 'ENDIF',
-        'else'       : 'ELSE',
-        'elseif'     : 'ELSEIF',
-        'goto'       : 'GOTO',
-        'function'   : 'FUNCTION',
-        'return'     : 'RETURN',
-        'subroutine' : 'SUBROUTINE',
-        'real'       : 'REAL',
-        'double'     : 'DOUBLE',
-        'precision'  : 'PRECISION',
-        'complex'    : 'COMPLEX',
-        'character'  : 'CHARACTER',
-        'integer'    : 'INTEGER',
-        'stop'       : 'STOP',
-        'call'       : 'CALL',
-        'data'       : 'DATA',
-        'dimension'  : 'DIMENSION',
-        'common'     : 'COMMON',
-        'parameter'  : 'PARAMETER',
+        # Estrutura do programa
+        'program'              : 'PROGRAM',
+        'end'                  : 'END',
+        'stop'                 : 'STOP',
+
+        # Subprogramas
+        'function'             : 'FUNCTION',
+        'subroutine'           : 'SUBROUTINE',
+        'return'               : 'RETURN',
+        'call'                 : 'CALL',
+
+        # Tipos de dados
+        'integer'              : 'INTEGER',
+        'real'                 : 'REAL',
+        'double_precision'     : 'DOUBLE_PRECISION',
+        'character'            : 'CHARACTER',
+        'logical'              : 'LOGICAL',
+
+        # Controlo de fluxo
+        'if'                   : 'IF',
+        'then'                 : 'THEN',
+        'else'                 : 'ELSE',
+        'elseif'               : 'ELSEIF',
+        'endif'                : 'ENDIF',
+        'do'                   : 'DO',
+        'continue'             : 'CONTINUE',
+        'goto'                 : 'GOTO',
+
+        # I/O
+        'read'                 : 'READ',
+        'print'                : 'PRINT',
+        'write'                : 'WRITE',
+
+        # Declarações
+        'data'                 : 'DATA',
+        'dimension'            : 'DIMENSION',
+        'common'               : 'COMMON',
+        'parameter'            : 'PARAMETER',
     }
     
     tokens = list(keywords.values()) + [
@@ -77,198 +79,161 @@ class Lexer:
         'OP_NE',
         'OP_EQ',
     
-        # Operador de concatenação de strings
-        'OP_CONCAT',
-    
         # Operador de potência
         'OP_POW',
-    
-        # Label numérico de linha
-        'LABEL',
-    
+        # Concatenação `//` de strings.
+        'OP_CONCAT',
+
         'NEWLINE',
     ]
     
-    # Literais de um só caracter (delimitadores e operadores simples)
-    literals = ['=', '+', '-', '*', '/', '(', ')', ',', ':', '&', '%']
+    # Literais
+    literals = ['=', '+', '-', '*', '/', '(', ')', ',', ':']
     
-    def preprocess_fixed_form(self, data:str):
-        out=[]
-        for line in data.splitlines():
-            if not line:
-                out.append('')
-                continue
-            if line[0] in ('c','C','*','!'):
-                out.append('')
-                continue
-            label = line[:5].strip()
-            code = line[6:72] if len(line) > 6 else ''
-            if label.isdigit():
-                out.append(label + ' ' + code.rstrip())
-            else:
-                out.append(line.rstrip())
-        return '\n'.join(out)
-  
-    def t_BOOL(self, t ):
-        r'\.TRUE\.|\.FALSE\.'
-        t.value = True if t.value.upper() == '.TRUE.' else False
+    def t_BOOL(self, t):
+        r'\.([Tt][Rr][Uu][Ee]|[Ff][Aa][Ll][Ss][Ee])\.'
+        t.value = t.value.upper() == '.TRUE.'
         return t
-    
-    def t_OP_AND(self, t ):
-        r'\.AND\.'
+
+    def t_OP_AND(self, t):
+        r'\.[Aa][Nn][Dd]\.'
         return t
-    
-    def t_OP_OR(self, t ):
-        r'\.OR\.'
+
+    def t_OP_OR(self, t):
+        r'\.[Oo][Rr]\.'
         return t
-    
-    def t_OP_EQV(self, t ):
-        r'\.EQV\.'
+
+    def t_OP_EQV(self, t):
+        r'\.[Ee][Qq][Vv]\.'
         return t
-    
-    def t_OP_NEQV(self, t ):
-        r'\.NEQV\.'
+
+    def t_OP_NEQV(self, t):
+        r'\.[Nn][Ee][Qq][Vv]\.'
         return t
-    
-    def t_OP_NOT(self, t ):
-        r'\.NOT\.'
+
+    def t_OP_NOT(self, t):
+        r'\.[Nn][Oo][Tt]\.'
         return t
-    
-    def t_OP_LE(self, t ):
-        r'\.LE\.'
+
+    def t_OP_LE(self, t):
+        r'\.[Ll][Ee]\.'
         return t
-    
-    def t_OP_GE(self, t ):
-        r'\.GE\.'
+
+    def t_OP_GE(self, t):
+        r'\.[Gg][Ee]\.'
         return t
-    
-    def t_OP_GT(self, t ):
-        r'\.GT\.'
+
+    def t_OP_GT(self, t):
+        r'\.[Gg][Tt]\.'
         return t
-    
-    def t_OP_LT(self, t ):
-        r'\.LT\.'
+
+    def t_OP_LT(self, t):
+        r'\.[Ll][Tt]\.'
         return t
-    
-    def t_OP_NE(self, t ):
-        r'\.NE\.'
+
+    def t_OP_NE(self, t):
+        r'\.[Nn][Ee]\.'
         return t
-    
-    def t_OP_EQ(self, t ):
-        r'\.EQ\.'
+
+    def t_OP_EQ(self, t):
+        r'\.[Ee][Qq]\.'
         return t
-    
-    def t_OP_CONCAT(self, t ):
+
+    def t_OP_POW(self, t):
+        r'\*\*'
+        return t
+
+    def t_OP_CONCAT(self, t):
         r'//'
         return t
     
-    def t_OP_POW(self, t ):
-        r'\*\*'
-        return t
+    def t_CONTINUATION(self, t):
+        r'&[ \t]*\n[ \t]*'
+        t.lexer.lineno += 1
+        pass
     
-    def t_REALNUMB(self, t ):
-        r'\d+\.\d*([eEdD][+-]?\d+)?|\d+[eEdD][+-]?\d+'
+    def t_REALNUMB(self, t):
+        r'(\d+\.\d*|\.\d+)([eEdD][+-]?\d+)?|\d+[eEdD][+-]?\d+'
         t.value = float(t.value.replace('d', 'e').replace('D', 'E'))
         return t
     
-    def t_LABEL(self, t):
+    def t_INT(self, t):
         r'\d+'
-        pos0 = t.lexpos == 0 or t.lexer.lexdata[t.lexpos-1] == '\n'
-        if pos0:
-            t.value = int(t.value)
-            return t
-        t.type='INT'
-        t.value=int(t.value)
+        t.value = int(t.value)
         return t
     
+    def t_STR(self, t):
+        r'\'(?:\'\'|[^\'])*\'|\"(?:\"\"|[^\"])*\"'
+        t.value = t.value[1:-1]
+        return t
 
-    def t_STR(self,t):
-        r"'(?:''|[^'])*'|\"(?:\"\"|[^\"])*\""
-        raw=t.value[1:-1]
-        if t.value[0]=="'":
-            t.value=raw.replace("''","'")
-        else:
-            t.value=raw.replace('""','"')
-        return t   
-    
-    #  Fortran é case-insensitive — normaliza tudo para minúsculas
-    def t_IDENTIFIER(self, t ):
+    def t_IDENTIFIER(self, t):
         r'[a-zA-Z][a-zA-Z0-9_]*'
-        t.type = self.keywords.get(t.value.lower(), 'IDENTIFIER')
-        # Mantém o valor original mas guarda também a versão normalizada
+        lower = t.value.lower()
+    
+        if lower == 'double':
+            current_pos = t.lexer.lexpos
+            data = t.lexer.lexdata
+            while current_pos < len(data) and data[current_pos] in ' \t':
+                current_pos+=1
+
+            word_end = current_pos
+            while word_end < len(data) and (
+                data[word_end].isalpha() or data[word_end].isdigit() or data[word_end] == '_'
+            ):
+                word_end += 1
+
+            next_word = data[current_pos:word_end].lower()
+            
+            if next_word == 'precision':
+                t.type = 'DOUBLE_PRECISION'
+                t.value = 'DOUBLE_PRECISION'
+                t.lexer.lexpos = word_end
+                return t
+            t.type = 'IDENTIFIER'
+            t.value = 'DOUBLE'
+            return t
+    
+        t.type = self.keywords.get(lower, 'IDENTIFIER')
         t.value = t.value.upper()
         return t
-    
-    def t_NEWLINE(self, t ):
-        r'\n+'
-        t.lexer.lineno += len(t.value)
-        #return t
-    
+
+    def t_NEWLINE(self, t):
+        r'(\r?\n[ \t]*)+'
+        t.lexer.lineno += t.value.count('\n')
+        return t
     
     # Comentários em free-form começam com '!'
-    def t_COMMENT(self, t ):
+    def t_COMMENT(self, t):
         r'!.*'
         pass
     
-    # Ignorar espaços e tabs, mas não newlines
+    # Ignorar espaços e tabs
     t_ignore = ' \t\r'
     
-    
-    # ─────────────────────────────────────────────────────────────────────────────
-    #  Tratamento de erros
-    # ─────────────────────────────────────────────────────────────────────────────
-    
-    def t_error(self, t ):
+    def t_error(self, t):
         col = find_column(t)
         line = getline(t).rstrip()
-        print(f"Erro léxico na linha {t.lineno}, coluna {col}: caracter inesperado '{t.value[0]}'")
-        print(f"  {line}")
-        print(f"  {' ' * (col - 1)}^")
+        msg = (
+            f"Erro léxico na linha {t.lineno}, coluna {col}: "
+            f"caracter inesperado '{t.value[0]}'\n"
+            f"  {line}\n"
+            f"  {' ' * (col - 1)}^"
+        )
+        self.lex_errors.append(msg)
         t.lexer.skip(1)
     
     
     def build(self, **kwargs):
+        self.lex_errors = []
         self.lexer = lex.lex(module=self, **kwargs)
  
-    def input(self,data:str, fixed_form=True):
-        self.lexer.lineno=1
-        if fixed_form:
-            data=self.preprocess_fixed_form(data)
-        self.lexer.input(data)
-
-    def token(self):
-        return self.lexer.token()
-    
-    def test(self, data: str):
+    def input(self, data: str):
         self.lexer.lineno = 1
         self.lexer.input(data)
-        for tok in self.lexer:
-            print(tok)
-    
+ 
+    def token(self):
+        return self.lexer.token()
+
     def __iter__(self):
         return self.lexer.__iter__()
-    
-    
-if __name__ == '__main__':
-    m = Lexer()
-    m.build()
-
-    if len(sys.argv) > 1:
-        with open(sys.argv[1]) as f:
-            data = f.read()
-        m.test(data)
-    else:
-        examples = [
-            '../tests/examples/hello.f',
-            '../tests/examples/factorial.f',
-            '../tests/examples/prime.f',
-            '../tests/examples/sumlist.f',
-            '../tests/examples/convert.f',
-        ]
-        for path in examples:
-            print(f"\n{'='*60}")
-            print(f"  {path}")
-            print(f"{'='*60}")
-            with open(path) as f:
-                data = f.read()
-            m.test(data)
