@@ -30,7 +30,7 @@
 
 ## 1. Resumo
 
-Este relatório descreve o desenvolvimento de um compilador para um subconjunto significativo da linguagem **Fortran 77**, implementado em Python com recurso às ferramentas `ply.lex` e `ply.yacc`. O compilador realiza análise léxica, análise sintática, análise semântica e geração de código, sendo que a geração de código tem como alvo a **EWVM** (Educational Wide Virtual Machine).
+Este relatório descreve o processo de desenvolvimento de um compilador para um subconjunto significativo da linguagem **Fortran 77**, implementado em Python com recurso às ferramentas `ply.lex` e `ply.yacc`. O compilador realiza análise léxica, análise sintática, análise semântica e geração de código, sendo que a geração de código tem como alvo a **EWVM** (Educational Wide Virtual Machine).
 
 ---
 
