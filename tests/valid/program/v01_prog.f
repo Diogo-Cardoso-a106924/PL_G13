@@ -1,0 +1,5 @@
+PROGRAM TESTE
+    INTEGER X
+    READ *, X
+    PRINT *, X
+END
